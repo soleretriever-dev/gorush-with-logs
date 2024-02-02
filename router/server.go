@@ -11,10 +11,14 @@ import (
 
 	"github.com/appleboy/gorush/config"
 	"github.com/appleboy/gorush/core"
+	id "github.com/appleboy/gorush/get-id"
 	"github.com/appleboy/gorush/logx"
 	"github.com/appleboy/gorush/metric"
 	"github.com/appleboy/gorush/notify"
 	"github.com/appleboy/gorush/status"
+	custom "github.com/appleboy/gorush/util-custom"
+
+	"time"
 
 	api "github.com/appleboy/gin-status-api"
 	"github.com/gin-contrib/logger"
@@ -58,6 +62,8 @@ func versionHandler(c *gin.Context) {
 
 func pushHandler(cfg *config.ConfYaml, q *queue.Queue) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var time_start = time.Now()
+
 		var form notify.RequestPush
 		var msg string
 
@@ -98,11 +104,25 @@ func pushHandler(cfg *config.ConfYaml, q *queue.Queue) gin.HandlerFunc {
 
 		counts, logs := handleNotification(ctx, cfg, form, q)
 
+		//get form.Notifications[0].Data["body"].(data)["traceId"].(data) without type assertion
+		//fmt.Println(form.Notifications[0].Data["body"].(map[string]interface{})["traceId"].(string))
+
+		var time_end = time.Now()
+		traceId, err := id.GetTraceId(form.Notifications)
+		if err != nil {
+			fmt.Println(err)
+			traceId = "not found"
+		} else {
+			var jsonData = custom.CalculatePerformanceData(traceId.(string), "handler", time_start, time_end)
+			fmt.Println(string(jsonData))
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"success": "ok",
 			"counts":  counts,
 			"logs":    logs,
 		})
+
 	}
 }
 
@@ -117,6 +137,7 @@ func metricsHandler(c *gin.Context) {
 }
 
 func appStatusHandler(q *queue.Queue) gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		result := status.App{}
 
@@ -132,7 +153,6 @@ func appStatusHandler(q *queue.Queue) gin.HandlerFunc {
 		result.Android.PushError = status.StatStorage.GetAndroidError()
 		result.Huawei.PushSuccess = status.StatStorage.GetHuaweiSuccess()
 		result.Huawei.PushError = status.StatStorage.GetHuaweiError()
-
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -265,9 +285,9 @@ func handleNotification(
 		notification := &req.Notifications[i]
 		switch notification.Platform {
 		case core.PlatFormIos:
-			if !cfg.Ios.Enabled {
-				continue
-			}
+			// if !cfg.Ios.Enabled {
+			// 	continue
+			// }
 		case core.PlatFormAndroid:
 			if !cfg.Android.Enabled {
 				continue
