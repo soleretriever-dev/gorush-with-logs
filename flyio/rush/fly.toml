@@ -1,0 +1,55 @@
+# fly.toml file generated for notification-server-1 on 2022-08-05T14:49:01+02:00
+# Env list https://issuecloser.com/blog/env-variables-list
+
+app = "notification-with-performance"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]
+GORUSH_ANDROID_APIKEY = "AAAAGyZUsVM:APA91bF3pXS9tnK-PW4w_zh22WGdrM6HgrDRMLCjZ07ha0tM50BHVT1hI8NJuOHN2sJUthOy4mOwFY7uHvGVK8dGSSk3yq_2fsd0ViqDtR01TxmoG9QOj8w1v0WrxN6lRXRU9iHnBTD0"
+GORUSH_CORE_MAX_NOTIFICATION = "100000000"
+GORUSH_CORE_QUEUE_NUM = "2000000"
+GORUSH_CORE_SYNC = "true"
+GORUSH_IOS_KEY_ID = "H7PMW927D3"
+GORUSH_IOS_TEAM_ID = "3733ZPWZ9T"
+GORUSH_IOS_PRODUCTION = "true"
+GORUSH_IOS_MAX_CONCURRENT_PUSHES = "100000"
+GORUSH_LOG_HIDE_TOKEN = "false"
+GORUSH_LOG_ACCESS_LEVEL = "warn"
+GORUSH_LOG_FORMAT = "json"
+GORUSH_LOG_ERROR_LEVEL = "warn"
+GORUSH_CORE_FEEDBACK_HOOK_URL = "https://sole-retriever-mobile.netlify.app/.netlify/functions/push-notification-feedback-webook"
+
+[experimental]
+allowed_public_ports = []
+auto_rollback = true
+
+[[services]]
+http_checks = []
+internal_port = 8088
+processes = ["app"]
+protocol = "tcp"
+script_checks = []
+[services.concurrency]
+hard_limit = 1000
+soft_limit = 1000
+type = "connections"
+
+[[services.ports]]
+force_https = false
+handlers = ["http"]
+port = 80
+
+[[services.ports]]
+handlers = ["tls", "http"]
+port = 443
+
+[[services.tcp_checks]]
+grace_period = "1s"
+interval = "15s"
+restart_limit = 0
+timeout = "2s"
+
+[deploy]
+strategy = "bluegreen"
