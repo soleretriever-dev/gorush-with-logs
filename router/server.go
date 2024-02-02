@@ -285,9 +285,9 @@ func handleNotification(
 		notification := &req.Notifications[i]
 		switch notification.Platform {
 		case core.PlatFormIos:
-			// if !cfg.Ios.Enabled {
-			// 	continue
-			// }
+			if !cfg.Ios.Enabled {
+				continue
+			}
 		case core.PlatFormAndroid:
 			if !cfg.Android.Enabled {
 				continue
