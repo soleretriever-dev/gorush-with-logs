@@ -11,7 +11,6 @@ import (
 
 	"github.com/appleboy/gorush/config"
 	"github.com/appleboy/gorush/core"
-	id "github.com/appleboy/gorush/get-id"
 	"github.com/appleboy/gorush/logx"
 	"github.com/appleboy/gorush/metric"
 	"github.com/appleboy/gorush/notify"
@@ -64,6 +63,16 @@ func pushHandler(cfg *config.ConfYaml, q *queue.Queue) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var time_start = time.Now()
 
+		pipelineId := c.Request.Header.Get("x-pipeline-trace-id")
+		requestId := c.Request.Header.Get("x-request-trace-id")
+		if pipelineId == "" {
+			pipelineId = "not found"
+		}
+
+		if requestId == "" {
+			requestId = "not found"
+		}
+
 		var form notify.RequestPush
 		var msg string
 
@@ -108,14 +117,9 @@ func pushHandler(cfg *config.ConfYaml, q *queue.Queue) gin.HandlerFunc {
 		//fmt.Println(form.Notifications[0].Data["body"].(map[string]interface{})["traceId"].(string))
 
 		var time_end = time.Now()
-		traceId, err := id.GetTraceId(form.Notifications)
-		if err != nil {
-			fmt.Println(err)
-			traceId = "not found"
-		} else {
-			var jsonData = custom.CalculatePerformanceData(traceId.(string), "handler", time_start, time_end)
-			fmt.Println(string(jsonData))
-		}
+
+		var jsonData = custom.CalculatePerformanceData(pipelineId, requestId, "handler", time_start, time_end)
+		fmt.Println(string(jsonData))
 
 		c.JSON(http.StatusOK, gin.H{
 			"success": "ok",
