@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -16,7 +15,6 @@ import (
 	"github.com/appleboy/gorush/core"
 	"github.com/appleboy/gorush/logx"
 	"github.com/appleboy/gorush/status"
-	custom "github.com/appleboy/gorush/util-custom"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/sideshow/apns2"
@@ -404,15 +402,7 @@ func getApnsClient(cfg *config.ConfYaml, req *PushNotification) (client *apns2.C
 
 // PushToIOS provide send notification to APNs server.
 func PushToIOS(req *PushNotification, cfg *config.ConfYaml) (resp *ResponsePush, err error) {
-	var time_start = time.Now()
 	logx.LogAccess.Debug("Start push notification for iOS")
-
-	var traceId = "not found"
-	if body, ok := req.Data["body"].(map[string]interface{}); ok {
-		if data, ok := body["traceId"].(string); ok {
-			traceId = data
-		}
-	}
 
 	var (
 		retryCount = 0
@@ -481,8 +471,5 @@ Retry:
 		goto Retry
 	}
 
-	var time_end = time.Now()
-	var jsonData = custom.CalculatePerformanceData(traceId, "Push-IOS", time_start, time_end)
-	fmt.Println(string(jsonData))
 	return resp, nil
 }
